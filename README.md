@@ -1,57 +1,41 @@
-# url-checker
+# url-checker v2
 
- Script em Python para verificar o **status HTTP de uma lista de URLs**, separando os resultados em arquivos CSV de acordo com o código retornado pelo servidor.
+Script desenvolvido em **Python** para verificar o status HTTP de uma lista de URLs.
 
- Atualmente, o projeto identifica principalmente:
+O programa lê as URLs do arquivo `base/2024/rj.txt`, realiza uma requisição HTTP para cada endereço e separa as URLs de acordo com o resultado:
 
-- 🟢 `200` — URL acessível / OK
-- 🔴 `404` — Página não encontrada
-- 🟡 Outros códigos HTTP — exibidos no terminal, mas não armazenados nos arquivos de resultado
+- `200` — URL acessível
+- `404` — Página não encontrada
+- Outros códigos — exibidos no terminal
+- Erros de requisição — exibidos no terminal
 
-## 📋 Requisitos
+Os resultados dos códigos `200` e `404` são armazenados em arquivos separados.
 
-- Python 3.8 ou superior
-- `requests`
-- `colorama`
+## Tecnologias utilizadas
 
- ## 🚀 Instalação
+- **Python 3**
+- **Requests** — realização das requisições HTTP
+- **Colorama** — exibição de mensagens coloridas no terminal
 
-Clone o projeto:
+ ## Instalação
 
-```
-git clone git@github.com:horadoqa/url-checker.git
-cd url-checker
-```
+Certifique-se de ter o Python instalado.
 
-Crie um ambiente virtual:
-
-```
-python -m venv venv
-```
-
-Ative o ambiente virtual.
-
-### Linux / macOS
-
-```
-source venv/bin/activate
-```
-
-### Windows
-
-```
-venv\Scripts\activate
-```
-
-Instale as dependências:
+Instale as dependências com:
 
 ```
 pip install requests colorama
 ```
 
-## 📁 Estrutura do projeto
+Ou, caso esteja utilizando `pip3`:
 
-A estrutura esperada é:
+```
+pip3 install requests colorama
+```
+
+## Estrutura do projeto
+
+O programa espera encontrar os arquivos e diretórios seguindo esta estrutura:
 
 ```
 .
@@ -63,138 +47,137 @@ A estrutura esperada é:
 │   ├── 200.csv
 │   └── 404.csv
 │
-├── main.py
-└── README.md
+└── main.py
 ```
 
-### Arquivo `rj.txt`
+## Arquivo de entrada
 
-O arquivo `base/2024/rj.txt` deve conter **uma URL por linha**:
+As URLs devem ser adicionadas ao arquivo:
 
 ```
-https://exemplo.com
-https://google.com
-https://site-inexistente.com
+base/2024/rj.txt
 ```
 
- Linhas vazias são ignoradas automaticamente.
+Cada URL deve estar em uma linha diferente:
 
- ## ▶️ Executando
+```
+https://www.google.com
+https://www.python.org
+https://www.exemplo.com/pagina
+```
 
- Com as dependências instaladas, execute:
+Linhas vazias são ignoradas automaticamente pelo programa.
+
+## Execução
+
+Execute o arquivo Python:
 
 ```
 python main.py
 ```
 
- Durante a execução, o programa exibe cada URL e seu respectivo status HTTP:
+Durante a execução, o programa apresenta cada URL e o status HTTP retornado.
+
+Exemplo:
 
 ```
-https://exemplo.com
+https://www.google.com
 STATUS CODE 200
 
-https://site-inexistente.com
+https://www.exemplo.com/pagina-inexistente
 STATUS CODE 404
 
-https://outro-site.com
+https://www.site.com
 STATUS CODE 301
 ```
 
-Ao final, é apresentado um resumo:
+As mensagens são exibidas com cores diferentes no terminal:
+
+- 🟢 Verde para `200`
+- 🔴 Vermelho para `404`
+- 🟡 Amarelo para outros códigos HTTP
+
+## Resultados
+
+As URLs que retornarem `HTTP 200` são salvas em:
+
+```
+resultado/200.csv
+```
+
+As URLs que retornarem `HTTP 404` são salvas em:
+
+```
+resultado/404.csv
+```
+
+Ao final da execução, o programa apresenta um resumo:
 
 ```
 --------------------------------------------------
 Resultado
 --------------------------------------------------
 10 URLs tiveram Status Code 200 OK
-3 URLs tiveram Status Code 404 Page Not Found
+5 URLs tiveram Status Code 404 Page Not Found
 --------------------------------------------------
 ```
 
-## 📊 Resultados
+## Tratamento de erros
 
-As URLs com status `200` são salvas em:
+O programa utiliza `requests.RequestException` para tratar erros durante as requisições.
 
-```
-resultado/200.csv
-```
+Caso uma URL não possa ser acessada, o erro será exibido no terminal e o programa continuará processando as demais URLs.
 
-As URLs com status `404` são salvas em:
-
-```
-resultado/404.csv
-```
-
-Por exemplo:
-
-### `resultado/200.csv`
-
-```
-https://google.com
-https://example.com
-```
-
-### `resultado/404.csv`
-
-```
-https://site-inexistente.com
-https://example.com/pagina-inexistente
-```
-
- ## 🧠 Como funciona
-
- O programa:
-
-1. Abre o arquivo `base/2024/rj.txt`.
-2. Percorre cada URL encontrada.
-3. Ignora linhas vazias.
-4. Realiza uma requisição HTTP utilizando a biblioteca `requests`.
-5. Verifica o código de status retornado.
-6. Salva URLs com status `200` em `resultado/200.csv`.
-7. Salva URLs com status `404` em `resultado/404.csv`.
-8. Exibe outros códigos HTTP no terminal.
-9. Trata erros de conexão através de `requests.RequestException`.
-10. Exibe um resumo da quantidade de URLs encontradas em cada categoria.
-
-## 🎨 Cores no terminal
-
-O projeto utiliza a biblioteca `colorama` para facilitar a visualização dos resultados:
-
-| Status | Cor | Significado |
-| --- | --- | --- |
-| `200` | 🟢 Verde | Requisição realizada com sucesso |
-| `404` | 🔴 Vermelho | Página não encontrada |
-| Outros | 🟡 Amarelo | Outro código HTTP |
-
-## ⚠️ Tratamento de erros
-
-Caso uma URL não possa ser acessada, o programa não é interrompido. O erro é capturado e exibido no terminal:
+Exemplo:
 
 ```
 Erro ao acessar https://exemplo.com: ...
 ```
 
- Isso permite que o processamento continue para as próximas URLs.
+## Como o código funciona
 
- ## 🔧 Melhorias futuras
+O fluxo principal do programa é:
 
- Algumas melhorias que podem ser implementadas:
+```
+Arquivo rj.txt
+      │
+      ▼
+Lê uma URL
+      │
+      ▼
+Realiza requisição HTTP
+      │
+      ├── 200 ──► resultado/200.csv
+      │
+      ├── 404 ──► resultado/404.csv
+      │
+      └── Outros ──► Exibe no terminal
+```
 
-- Adicionar `timeout` nas requisições.
-- Verificar outros códigos HTTP, como `301`, `302`, `403` e `500`.
-- Criar arquivos separados para cada status.
-- Utilizar requisições paralelas para aumentar a velocidade.
-- Adicionar argumentos de linha de comando.
-- Permitir escolher o arquivo de entrada.
-- Gerar um relatório final em CSV.
-- Registrar erros em um arquivo de log.
-- Adicionar testes automatizados.
-- Utilizar `Session` do `requests` para reutilizar conexões.
+O programa também utiliza `with` para abrir os arquivos, garantindo que eles sejam fechados corretamente após o processamento.
 
- ## 📄 Licença
+## Dependências
 
- Este projeto pode ser utilizado, modificado e distribuído livremente, caso nenhuma licença específica seja definida pelo autor.
+As dependências utilizadas são:
 
----
+```
+requests
+colorama
+```
 
- Desenvolvido em **Python** 
+Elas podem ser instaladas com:
+
+```
+pip install requests colorama
+```
+
+## Observações
+
+O código atualmente não utiliza `timeout` nas requisições HTTP. Portanto, dependendo do comportamento de um servidor, uma requisição pode permanecer aguardando por um período prolongado.
+
+Além disso, somente os códigos `200` e `404` são gravados nos arquivos de resultado. Outros códigos HTTP são apenas exibidos no terminal.
+
+## Licença
+
+Este projeto não possui uma licença especificada. Caso seja publicado no GitHub ou distribuído publicamente, recomenda-se definir uma licença apropriada.
+

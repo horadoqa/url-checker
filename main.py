@@ -1,44 +1,108 @@
+import os
 import requests
 from colorama import Fore, Style, init
 
-# Inicializa o Colorama
 init(autoreset=True)
 
-# Função para escrever no arquivo
-def writeFile(arq, linha):
-    arq.write(linha)
+ARQUIVO_ENTRADA = "base/2024/rj.txt"
+ARQUIVO_200 = "resultado/200.csv"
+ARQUIVO_404 = "resultado/404.csv"
 
-# Abrindo arquivos com o contexto 'with' para garantir que sejam fechados corretamente
-with open('base/2024/rj.txt', 'r') as arq, open('resultado/200.csv', 'w') as arq_200, open('resultado/404.csv', 'w') as arq_404:
+TIMEOUT = 10
 
-    cont_200 = 0
-    cont_404 = 0
+# Garante que o diretório de saída exista
+os.makedirs("resultado", exist_ok=True)
 
-    for linha in arq:
+contadores = {
+    200: 0,
+    404: 0,
+    "outros": 0,
+    "erros": 0
+}
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (URL Checker)"
+}
+
+with (
+    open(ARQUIVO_ENTRADA, "r", encoding="utf-8") as entrada,
+    open(ARQUIVO_200, "w", encoding="utf-8") as arq_200,
+    open(ARQUIVO_404, "w", encoding="utf-8") as arq_404,
+    requests.Session() as session
+):
+
+    session.headers.update(headers)
+
+    for linha in entrada:
         url = linha.strip()
-        if not url:  # Ignora linhas vazias
+
+        if not url:
             continue
 
-        print(url)
+        print(f"Testando: {url}")
+
         try:
-            r = requests.get(url)
-            if r.status_code == 200:
-                print(Fore.GREEN + "STATUS CODE 200" + Style.RESET_ALL)
-                writeFile(arq_200, linha)
-                cont_200 += 1
-            elif r.status_code == 404:
-                print(Fore.RED + "STATUS CODE 404" + Style.RESET_ALL)
-                writeFile(arq_404, linha)
-                cont_404 += 1
+            response = session.get(
+                url,
+                timeout=TIMEOUT,
+                allow_redirects=True
+            )
+
+            status = response.status_code
+
+            if status == 200:
+                print(
+                    Fore.GREEN +
+                    "STATUS CODE 200" +
+                    Style.RESET_ALL
+                )
+
+                arq_200.write(url + "\n")
+                contadores[200] += 1
+
+            elif status == 404:
+                print(
+                    Fore.RED +
+                    "STATUS CODE 404" +
+                    Style.RESET_ALL
+                )
+
+                arq_404.write(url + "\n")
+                contadores[404] += 1
+
             else:
-                print(Fore.YELLOW + f"STATUS CODE {r.status_code}" + Style.RESET_ALL)
+                print(
+                    Fore.YELLOW +
+                    f"STATUS CODE {status}" +
+                    Style.RESET_ALL
+                )
+
+                contadores["outros"] += 1
+
+        except requests.Timeout:
+            print(
+                Fore.RED +
+                "TIMEOUT" +
+                Style.RESET_ALL
+            )
+            contadores["erros"] += 1
 
         except requests.RequestException as e:
-            print(Fore.RED + f"Erro ao acessar {url}: {e}" + Style.RESET_ALL)
+            print(
+                Fore.RED +
+                f"ERRO: {e}" +
+                Style.RESET_ALL
+            )
+            contadores["erros"] += 1
 
-    print("-"*50)
-    print("Resultado")
-    print("-"*50)
-    print(f"{cont_200} URLs tiveram Status Code 200 OK")
-    print(f"{cont_404} URLs tiveram Status Code 404 Page Not Found")
-    print("-"*50)
+
+print("\n" + "-" * 50)
+print("RESULTADO")
+print("-" * 50)
+
+print(f"URLs com status 200: {contadores[200]}")
+print(f"URLs com status 404: {contadores[404]}")
+print(f"URLs com outros status: {contadores['outros']}")
+print(f"URLs com erro: {contadores['erros']}")
+
+print("-" * 50)
